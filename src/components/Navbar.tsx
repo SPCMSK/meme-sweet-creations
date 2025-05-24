@@ -1,17 +1,13 @@
-import React, { useState, useEffect } from 'react'; // useEffect podría ser necesario si usas useAuth con efectos secundarios directos aquí
-import { ShoppingCart, LogIn, User, LogOut } from 'lucide-react'; // Añadido LogIn, User, LogOut
+import React, { useState } from 'react';
+import { ShoppingCart, LogIn, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-
-// IMPORTACIONES CLAVE PARA LA AUTENTICACIÓN
-import { useAuth } from 'contexts/AuthContext'; // Ajusta la ruta si es diferente
-import { signInWithGoogle } from 'auth/authService'; // Ajusta la ruta si es diferente
+import { useAuth } from 'src/contexts/AuthContext';
+import { signInWithGoogle } from 'src/auth/authService';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [cartItems, setCartItems] = useState(0); // Dejamos tu estado del carrito
-
-  // LÓGICA DE AUTENTICACIÓN
-  const { user, loading, signOut } = useAuth(); // Obtén el estado del usuario y la función signOut
+  const [cartItems, setCartItems] = useState(0);
+  const { user, loading, signOut } = useAuth();
 
   const navigationItems = [
     { name: 'Inicio', href: '#inicio' },
@@ -19,11 +15,9 @@ const Navbar = () => {
     { name: 'Historia', href: '#historia' },
     { name: 'Testimonios', href: '#testimonios' },
     { name: 'Encargos', href: '#encargos' },
-    { name: 'Club Delicias', href: '#club' }
+    { name: 'Club Delicias', href: '#club' },
   ];
 
-  // Componente o función para renderizar los botones/info de autenticación
-  // para no repetir código en desktop y mobile.
   const renderAuthSection = (isMobile = false) => {
     if (loading) {
       return (
@@ -46,7 +40,7 @@ const Navbar = () => {
           <Button
             onClick={async () => {
               await signOut();
-              if (isMobile) setIsMenuOpen(false); // Cierra el menú móvil al hacer logout
+              if (isMobile) setIsMenuOpen(false);
             }}
             variant="outline"
             size="sm"
@@ -62,7 +56,7 @@ const Navbar = () => {
         <Button
           onClick={async () => {
             await signInWithGoogle();
-            if (isMobile) setIsMenuOpen(false); // Cierra el menú móvil después de intentar iniciar sesión
+            if (isMobile) setIsMenuOpen(false);
           }}
           variant="outline"
           size="sm"
@@ -126,15 +120,15 @@ const Navbar = () => {
             <div className="md:hidden">
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="text-charcoal hover:text-pastel-purple transition-colors duration-300 p-2 rounded-md" // Añadido padding y rounded para mejor click target
+                className="text-charcoal hover:text-pastel-purple transition-colors duration-300 p-2 rounded-md"
               >
                 {isMenuOpen ? (
                   <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /> {/* Icono X cuando está abierto */}
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 ) : (
                   <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /> {/* Icono Hamburguesa */}
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                   </svg>
                 )}
               </button>
@@ -158,7 +152,7 @@ const Navbar = () => {
               ))}
               {/* Separador y Auth Section para Mobile */}
               <div className="border-t border-pastel-pink/30 my-2"></div>
-              <div className="px-1 py-1 space-y-1"> {/* Ajustado padding si es necesario */}
+              <div className="px-1 py-1 space-y-1">
                 {renderAuthSection(true)}
               </div>
             </div>
