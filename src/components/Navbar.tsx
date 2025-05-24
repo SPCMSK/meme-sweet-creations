@@ -1,11 +1,17 @@
-
-import React, { useState } from 'react';
-import { ShoppingCart } from 'lucide-react';
+import React, { useState, useEffect } from 'react'; // useEffect podría ser necesario si usas useAuth con efectos secundarios directos aquí
+import { ShoppingCart, LogIn, User, LogOut } from 'lucide-react'; // Añadido LogIn, User, LogOut
 import { Button } from '@/components/ui/button';
+
+// IMPORTACIONES CLAVE PARA LA AUTENTICACIÓN
+import { useAuth } from 'src/contexts/AuthContext'; // Ajusta la ruta si es diferente
+import { signInWithGoogle } from 'src/auth/authService'; // Ajusta la ruta si es diferente
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [cartItems, setCartItems] = useState(0);
+  const [cartItems, setCartItems] = useState(0); // Dejamos tu estado del carrito
+
+  // LÓGICA DE AUTENTICACIÓN
+  const { user, loading, signOut } = useAuth(); // Obtén el estado del usuario y la función signOut
 
   const navigationItems = [
     { name: 'Inicio', href: '#inicio' },
@@ -15,6 +21,59 @@ const Navbar = () => {
     { name: 'Encargos', href: '#encargos' },
     { name: 'Club Delicias', href: '#club' }
   ];
+
+  // Componente o función para renderizar los botones/info de autenticación
+  // para no repetir código en desktop y mobile.
+  const renderAuthSection = (isMobile = false) => {
+    if (loading) {
+      return (
+        <Button
+          variant="ghost"
+          className={`${isMobile ? 'w-full justify-start text-left' : ''} text-charcoal`}
+          disabled
+        >
+          Cargando...
+        </Button>
+      );
+    }
+
+    if (user) {
+      return (
+        <>
+          <span className={`font-inter text-charcoal ${isMobile ? 'block py-2 px-3' : 'mr-3 hidden sm:inline'}`}>
+            Hola, {user.user_metadata?.full_name || user.email?.split('@')[0]}
+          </span>
+          <Button
+            onClick={async () => {
+              await signOut();
+              if (isMobile) setIsMenuOpen(false); // Cierra el menú móvil al hacer logout
+            }}
+            variant="outline"
+            size="sm"
+            className={`${isMobile ? 'w-full justify-start text-left' : ''} border-pastel-pink text-charcoal hover:bg-pastel-pink/10`}
+          >
+            <LogOut size={18} className="mr-2" />
+            Salir
+          </Button>
+        </>
+      );
+    } else {
+      return (
+        <Button
+          onClick={async () => {
+            await signInWithGoogle();
+            if (isMobile) setIsMenuOpen(false); // Cierra el menú móvil después de intentar iniciar sesión
+          }}
+          variant="outline"
+          size="sm"
+          className={`${isMobile ? 'w-full justify-start text-left' : ''} border-pastel-pink text-charcoal hover:bg-pastel-pink/10`}
+        >
+          <LogIn size={18} className="mr-2" />
+          Ingresar con Google
+        </Button>
+      );
+    }
+  };
 
   return (
     <nav className="fixed top-0 w-full bg-warm-white/95 backdrop-blur-sm border-b border-pastel-pink/20 z-50 animate-fade-in">
@@ -43,11 +102,16 @@ const Navbar = () => {
             </div>
           </div>
 
-          {/* Cart and Mobile menu button */}
+          {/* Cart, Auth (Desktop) and Mobile menu button */}
           <div className="flex items-center space-x-4">
-            <Button 
-              variant="outline" 
-              size="sm" 
+            {/* Auth Section para Desktop */}
+            <div className="hidden md:flex items-center space-x-2">
+              {renderAuthSection()}
+            </div>
+
+            <Button
+              variant="outline"
+              size="sm"
               className="relative border-pastel-pink text-charcoal hover:bg-pastel-pink/10"
             >
               <ShoppingCart size={18} />
@@ -62,11 +126,17 @@ const Navbar = () => {
             <div className="md:hidden">
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="text-charcoal hover:text-pastel-purple transition-colors duration-300"
+                className="text-charcoal hover:text-pastel-purple transition-colors duration-300 p-2 rounded-md" // Añadido padding y rounded para mejor click target
               >
-                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
+                {isMenuOpen ? (
+                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /> {/* Icono X cuando está abierto */}
+                  </svg>
+                ) : (
+                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /> {/* Icono Hamburguesa */}
+                  </svg>
+                )}
               </button>
             </div>
           </div>
@@ -86,6 +156,11 @@ const Navbar = () => {
                   {item.name}
                 </a>
               ))}
+              {/* Separador y Auth Section para Mobile */}
+              <div className="border-t border-pastel-pink/30 my-2"></div>
+              <div className="px-1 py-1 space-y-1"> {/* Ajustado padding si es necesario */}
+                {renderAuthSection(true)}
+              </div>
             </div>
           </div>
         )}
