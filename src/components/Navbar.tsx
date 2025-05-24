@@ -3,8 +3,8 @@ import { ShoppingCart, LogIn, User, LogOut } from 'lucide-react'; // Añadido Lo
 import { Button } from '@/components/ui/button';
 
 // IMPORTACIONES CLAVE PARA LA AUTENTICACIÓN
-import { useAuth } from 'src/contexts/AuthContext'; // Ajusta la ruta si es diferente
-import { signInWithGoogle } from 'src/auth/authService'; // Ajusta la ruta si es diferente
+import { useAuth } from 'contexts/AuthContext'; // Ajusta la ruta si es diferente
+import { signInWithGoogle } from 'auth/authService'; // Ajusta la ruta si es diferente
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
