@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { ShoppingCart, LogIn, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -9,6 +10,9 @@ const Navbar = () => {
   const [cartItems, setCartItems] = useState(0);
   const { user, loading, signOut } = useAuth();
 
+  // Debug logs to check auth state
+  console.log('Auth state:', { user, loading });
+
   const navigationItems = [
     { name: 'Inicio', href: '#inicio' },
     { name: 'Productos', href: '#productos' },
@@ -19,6 +23,8 @@ const Navbar = () => {
   ];
 
   const renderAuthSection = (isMobile = false) => {
+    console.log('Rendering auth section:', { loading, user: !!user, isMobile });
+    
     if (loading) {
       return (
         <Button
@@ -39,6 +45,7 @@ const Navbar = () => {
           </span>
           <Button
             onClick={async () => {
+              console.log('Signing out...');
               await signOut();
               if (isMobile) setIsMenuOpen(false);
             }}
@@ -55,6 +62,7 @@ const Navbar = () => {
       return (
         <Button
           onClick={async () => {
+            console.log('Attempting to sign in with Google...');
             await signInWithGoogle();
             if (isMobile) setIsMenuOpen(false);
           }}

@@ -2,6 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { ShoppingCart } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 interface Product {
   id: number;
@@ -118,12 +119,14 @@ const ProductGallery = () => {
 
         {/* CTA para ver todos los productos */}
         <div className="text-center">
-          <Button 
-            size="lg"
-            className="bg-pastel-purple hover:bg-pastel-purple/90 text-white font-inter font-medium px-8 py-3 rounded-full transition-all duration-300 hover:scale-105"
-          >
-            Ver todos los productos
-          </Button>
+          <Link to="/productos">
+            <Button 
+              size="lg"
+              className="bg-pastel-purple hover:bg-pastel-purple/90 text-white font-inter font-medium px-8 py-3 rounded-full transition-all duration-300 hover:scale-105"
+            >
+              Ver todos los productos
+            </Button>
+          </Link>
         </div>
       </div>
     </section>

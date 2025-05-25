@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -8,6 +9,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from './contexts/AuthContext'; // Ajusta la ruta si es diferente (ej. ./src/contexts/AuthContext)
 
 import Index from "./pages/Index";
+import ProductsPage from "./pages/ProductsPage";
 import NotFound from "./pages/NotFound";
 // Si tienes rutas protegidas o páginas que usan el estado de auth, podrías importarlas aquí también.
 // import DashboardPage from './pages/DashboardPage';
@@ -25,6 +27,7 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/productos" element={<ProductsPage />} />
             {/* Aquí puedes añadir tus rutas protegidas como te mostré en el punto 5 de la primera respuesta */}
             {/* Ejemplo de ruta protegida (asegúrate de crear ProtectedRoute.tsx y DashboardPage.tsx):
             <Route element={<ProtectedRoute />}>
