@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { ShoppingCart, LogIn, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -20,6 +21,16 @@ const Navbar = () => {
     { name: 'Encargos', href: '#encargos' },
     { name: 'Club Delicias', href: '#club' },
   ];
+
+  const handleGoogleSignIn = async () => {
+    try {
+      console.log('Attempting to sign in with Google...');
+      await signInWithGoogle();
+    } catch (error) {
+      console.error('Error during Google sign in:', error);
+      // Aquí podrías mostrar un toast de error al usuario
+    }
+  };
 
   const renderAuthSection = (isMobile = false) => {
     console.log('Rendering auth section:', { loading, user: !!user, isMobile });
@@ -60,9 +71,8 @@ const Navbar = () => {
     } else {
       return (
         <Button
-          onClick={async () => {
-            console.log('Attempting to sign in with Google...');
-            await signInWithGoogle();
+          onClick={() => {
+            handleGoogleSignIn();
             if (isMobile) setIsMenuOpen(false);
           }}
           variant="outline"

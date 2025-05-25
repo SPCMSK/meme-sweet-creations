@@ -9,7 +9,11 @@ const AuthCallback = () => {
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
-        const { data, error } = await supabase.auth.getSession();
+        console.log('Processing auth callback...');
+        console.log('Current URL:', window.location.href);
+        
+        // Usar getSession para obtener la sesión después del OAuth
+        const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
           console.error('Error during auth callback:', error.message);
@@ -17,12 +21,26 @@ const AuthCallback = () => {
           return;
         }
 
-        if (data.session) {
-          console.log('Authentication successful, redirecting to home');
+        if (session) {
+          console.log('Authentication successful:', session.user.email);
+          console.log('Redirecting to home...');
           navigate('/', { replace: true });
         } else {
-          console.log('No session found, redirecting to home');
-          navigate('/', { replace: true });
+          console.log('No session found, checking URL params...');
+          // Si no hay sesión, intentar procesar los parámetros de la URL
+          const hashParams = new URLSearchParams(window.location.hash.substring(1));
+          const accessToken = hashParams.get('access_token');
+          
+          if (accessToken) {
+            console.log('Found access token in URL, waiting for session...');
+            // Esperar un momento para que Supabase procese la sesión
+            setTimeout(() => {
+              navigate('/', { replace: true });
+            }, 1000);
+          } else {
+            console.log('No access token found, redirecting to home');
+            navigate('/', { replace: true });
+          }
         }
       } catch (error) {
         console.error('Unexpected error during auth callback:', error);
