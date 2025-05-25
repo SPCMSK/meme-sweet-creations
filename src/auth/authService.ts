@@ -1,22 +1,33 @@
-import { supabase } from '../lib/supabaseClient'; // Importa tu cliente Supabase inicializado
+
+import { supabase } from '../lib/supabaseClient';
 
 export const signInWithGoogle = async () => {
-  const { error } = await supabase.auth.signInWithOAuth({
+  console.log('Starting Google sign in...');
+  
+  const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: window.location.origin, // O tu URL de redirección específica post-login
+      redirectTo: `${window.location.origin}/auth/callback`,
+      queryParams: {
+        access_type: 'offline',
+        prompt: 'consent',
+      }
     },
   });
+  
   if (error) {
     console.error('Error signing in with Google:', error.message);
-    // Aquí podrías mostrar una notificación al usuario
+    throw error;
   }
+  
+  console.log('Google sign in initiated successfully');
+  return data;
 };
 
 export const signOut = async () => {
   const { error } = await supabase.auth.signOut();
   if (error) {
     console.error('Error signing out:', error.message);
+    throw error;
   }
-  // Podrías redirigir al usuario a la página de inicio o actualizar el estado
 };

@@ -5,22 +5,18 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
-// 1. IMPORTA TU AuthProvider
-import { AuthProvider } from './contexts/AuthContext'; // Ajusta la ruta si es diferente (ej. ./src/contexts/AuthContext)
+import { AuthProvider } from './contexts/AuthContext';
 
 import Index from "./pages/Index";
 import ProductsPage from "./pages/ProductsPage";
+import AuthCallback from "./pages/AuthCallback";
 import NotFound from "./pages/NotFound";
-// Si tienes rutas protegidas o páginas que usan el estado de auth, podrías importarlas aquí también.
-// import DashboardPage from './pages/DashboardPage';
-// import ProtectedRoute from './components/ProtectedRoute'; // Si creaste este componente
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      {/* 2. ENVUELVE TU APLICACIÓN (ESPECIALMENTE EL ROUTER) CON AuthProvider */}
       <AuthProvider>
         <Toaster />
         <Sonner />
@@ -28,13 +24,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/productos" element={<ProductsPage />} />
-            {/* Aquí puedes añadir tus rutas protegidas como te mostré en el punto 5 de la primera respuesta */}
-            {/* Ejemplo de ruta protegida (asegúrate de crear ProtectedRoute.tsx y DashboardPage.tsx):
-            <Route element={<ProtectedRoute />}>
-              <Route path="/dashboard" element={<DashboardPage />} />
-            </Route>
-            */}
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
