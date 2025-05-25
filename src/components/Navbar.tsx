@@ -1,9 +1,8 @@
-
 import React, { useState } from 'react';
 import { ShoppingCart, LogIn, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useAuth } from 'src/contexts/AuthContext';
-import { signInWithGoogle } from 'src/auth/authService';
+import { useAuth } from '../contexts/AuthContext';
+import { signInWithGoogle } from '../auth/authService';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);

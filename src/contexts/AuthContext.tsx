@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabaseClient';
@@ -35,18 +36,26 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setLoading(false);
     });
 
-    setData(); // Llama para establecer el estado inicial
+    setData();
 
     return () => {
       authListener?.subscription.unsubscribe();
     };
   }, []);
 
+  const signOut = async (): Promise<void> => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      console.error("Error signing out:", error.message);
+      throw error;
+    }
+  };
+
   const value = {
     session,
     user,
     loading,
-    signOut: () => supabase.auth.signOut(),
+    signOut,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
