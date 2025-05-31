@@ -9,6 +9,7 @@ import { AuthProvider } from './contexts/AuthContext';
 
 import Index from "./pages/Index";
 import ProductsPage from "./pages/ProductsPage";
+import AuthPage from "./pages/AuthPage";
 import AuthCallback from "./pages/AuthCallback";
 import NotFound from "./pages/NotFound";
 
@@ -24,6 +25,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/productos" element={<ProductsPage />} />
+            <Route path="/auth" element={<AuthPage />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

@@ -1,17 +1,15 @@
 
 import React, { useState } from 'react';
-import { ShoppingCart, LogIn, LogOut } from 'lucide-react';
+import { ShoppingCart, LogIn, LogOut, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '../contexts/AuthContext';
-import { signInWithGoogle } from '../auth/authService';
+import { useNavigate } from 'react-router-dom';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [cartItems, setCartItems] = useState(0);
   const { user, loading, signOut } = useAuth();
-
-  // Debug logs to check auth state
-  console.log('Auth state:', { user, loading });
+  const navigate = useNavigate();
 
   const navigationItems = [
     { name: 'Inicio', href: '#inicio' },
@@ -22,19 +20,17 @@ const Navbar = () => {
     { name: 'Club Delicias', href: '#club' },
   ];
 
-  const handleGoogleSignIn = async () => {
-    try {
-      console.log('Attempting to sign in with Google...');
-      await signInWithGoogle();
-    } catch (error) {
-      console.error('Error during Google sign in:', error);
-      // Aquí podrías mostrar un toast de error al usuario
+  const handleAuthAction = async () => {
+    if (user) {
+      console.log('Cerrando sesión...');
+      await signOut();
+    } else {
+      console.log('Navegando a página de autenticación...');
+      navigate('/auth');
     }
   };
 
   const renderAuthSection = (isMobile = false) => {
-    console.log('Rendering auth section:', { loading, user: !!user, isMobile });
-    
     if (loading) {
       return (
         <Button
@@ -50,37 +46,33 @@ const Navbar = () => {
     if (user) {
       return (
         <>
-          <span className={`font-inter text-charcoal ${isMobile ? 'block py-2 px-3' : 'mr-3 hidden sm:inline'}`}>
-            Hola, {user.user_metadata?.full_name || user.email?.split('@')[0]}
-          </span>
+          <div className={`flex items-center ${isMobile ? 'py-2 px-3' : 'mr-3 hidden sm:flex'}`}>
+            <User size={16} className="mr-2 text-charcoal" />
+            <span className="font-inter text-charcoal text-sm">
+              {user.email?.split('@')[0]}
+            </span>
+          </div>
           <Button
-            onClick={async () => {
-              console.log('Signing out...');
-              await signOut();
-              if (isMobile) setIsMenuOpen(false);
-            }}
+            onClick={handleAuthAction}
             variant="outline"
             size="sm"
             className={`${isMobile ? 'w-full justify-start text-left' : ''} border-pastel-pink text-charcoal hover:bg-pastel-pink/10`}
           >
             <LogOut size={18} className="mr-2" />
-            Salir
+            Cerrar Sesión
           </Button>
         </>
       );
     } else {
       return (
         <Button
-          onClick={() => {
-            handleGoogleSignIn();
-            if (isMobile) setIsMenuOpen(false);
-          }}
+          onClick={handleAuthAction}
           variant="outline"
           size="sm"
           className={`${isMobile ? 'w-full justify-start text-left' : ''} border-pastel-pink text-charcoal hover:bg-pastel-pink/10`}
         >
           <LogIn size={18} className="mr-2" />
-          Ingresar con Google
+          Iniciar Sesión
         </Button>
       );
     }
@@ -92,7 +84,8 @@ const Navbar = () => {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex-shrink-0">
-            <h1 className="font-playfair text-2xl font-bold text-charcoal">
+            <h1 className="font-playfair text-2xl font-bold text-charcoal cursor-pointer"
+                onClick={() => navigate('/')}>
               Delicias de <span className="text-pastel-purple">Meme</span>
             </h1>
           </div>
