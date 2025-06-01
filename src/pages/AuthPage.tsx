@@ -14,6 +14,9 @@ const AuthPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [username, setUsername] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -27,22 +30,55 @@ const AuthPage = () => {
     }
   }, [user, navigate]);
 
+  const validatePassword = (password: string) => {
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasNumbers = /\d/.test(password);
+    const hasMinLength = password.length >= 6;
+    
+    if (!hasMinLength) {
+      return 'La contraseña debe tener al menos 6 caracteres';
+    }
+    if (!hasUpperCase) {
+      return 'La contraseña debe tener al menos una letra mayúscula';
+    }
+    if (!hasNumbers) {
+      return 'La contraseña debe tener al menos un número';
+    }
+    return null;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setSuccess('');
     setLoading(true);
 
-    if (!isLogin && password !== confirmPassword) {
-      setError('Las contraseñas no coinciden');
-      setLoading(false);
-      return;
-    }
+    if (!isLogin) {
+      // Validaciones para registro
+      if (password !== confirmPassword) {
+        setError('Las contraseñas no coinciden');
+        setLoading(false);
+        return;
+      }
 
-    if (password.length < 6) {
-      setError('La contraseña debe tener al menos 6 caracteres');
-      setLoading(false);
-      return;
+      const passwordError = validatePassword(password);
+      if (passwordError) {
+        setError(passwordError);
+        setLoading(false);
+        return;
+      }
+
+      if (!username || !firstName || !lastName) {
+        setError('Todos los campos son obligatorios');
+        setLoading(false);
+        return;
+      }
+
+      if (username.length < 3) {
+        setError('El nombre de usuario debe tener al menos 3 caracteres');
+        setLoading(false);
+        return;
+      }
     }
 
     try {
@@ -56,6 +92,8 @@ const AuthPage = () => {
         if (error) {
           if (error.message.includes('Invalid login credentials')) {
             setError('Credenciales incorrectas. Verifica tu email y contraseña.');
+          } else if (error.message.includes('Email not confirmed')) {
+            setError('Por favor verifica tu email antes de iniciar sesión.');
           } else {
             setError(error.message);
           }
@@ -68,6 +106,14 @@ const AuthPage = () => {
         const { error } = await supabase.auth.signUp({
           email,
           password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/`,
+            data: {
+              username,
+              first_name: firstName,
+              last_name: lastName,
+            }
+          }
         });
 
         if (error) {
@@ -77,10 +123,13 @@ const AuthPage = () => {
             setError(error.message);
           }
         } else {
-          setSuccess('¡Cuenta creada exitosamente! Ya puedes iniciar sesión.');
+          setSuccess('¡Cuenta creada exitosamente! Se ha enviado un correo de verificación a tu email desde deliciasdememe.cl@gmail.com. Por favor revisa tu bandeja de entrada y haz clic en el enlace de verificación. El enlace expirará en 5 minutos.');
           setIsLogin(true);
           setPassword('');
           setConfirmPassword('');
+          setUsername('');
+          setFirstName('');
+          setLastName('');
         }
       }
     } catch (error) {
@@ -119,6 +168,51 @@ const AuthPage = () => {
               </Alert>
             )}
 
+            {!isLogin && (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="username" className="text-charcoal">Nombre de Usuario</Label>
+                  <Input
+                    id="username"
+                    type="text"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    placeholder="usuario123"
+                    required
+                    className="border-pastel-pink/30 focus:border-pastel-purple"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="firstName" className="text-charcoal">Nombre</Label>
+                    <Input
+                      id="firstName"
+                      type="text"
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      placeholder="Juan"
+                      required
+                      className="border-pastel-pink/30 focus:border-pastel-purple"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="lastName" className="text-charcoal">Apellido</Label>
+                    <Input
+                      id="lastName"
+                      type="text"
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                      placeholder="Pérez"
+                      required
+                      className="border-pastel-pink/30 focus:border-pastel-purple"
+                    />
+                  </div>
+                </div>
+              </>
+            )}
+
             <div className="space-y-2">
               <Label htmlFor="email" className="text-charcoal">Email</Label>
               <Input
@@ -143,6 +237,11 @@ const AuthPage = () => {
                 required
                 className="border-pastel-pink/30 focus:border-pastel-purple"
               />
+              {!isLogin && (
+                <p className="text-xs text-charcoal/60">
+                  Debe tener al menos 6 caracteres, una mayúscula y un número
+                </p>
+              )}
             </div>
 
             {!isLogin && (
@@ -178,6 +277,9 @@ const AuthPage = () => {
                 setSuccess('');
                 setPassword('');
                 setConfirmPassword('');
+                setUsername('');
+                setFirstName('');
+                setLastName('');
               }}
               className="text-pastel-purple hover:text-pastel-purple/80 font-inter text-sm"
             >

@@ -1,14 +1,15 @@
 
 import React, { useState } from 'react';
-import { ShoppingCart, LogIn, LogOut, User } from 'lucide-react';
+import { ShoppingCart, LogIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import UserMenu from './UserMenu';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [cartItems, setCartItems] = useState(0);
-  const { user, loading, signOut } = useAuth();
+  const { user, loading } = useAuth();
   const navigate = useNavigate();
 
   const navigationItems = [
@@ -20,14 +21,8 @@ const Navbar = () => {
     { name: 'Club Delicias', href: '#club' },
   ];
 
-  const handleAuthAction = async () => {
-    if (user) {
-      console.log('Cerrando sesión...');
-      await signOut();
-    } else {
-      console.log('Navegando a página de autenticación...');
-      navigate('/auth');
-    }
+  const handleAuthAction = () => {
+    navigate('/auth');
   };
 
   const renderAuthSection = (isMobile = false) => {
@@ -44,25 +39,7 @@ const Navbar = () => {
     }
 
     if (user) {
-      return (
-        <>
-          <div className={`flex items-center ${isMobile ? 'py-2 px-3' : 'mr-3 hidden sm:flex'}`}>
-            <User size={16} className="mr-2 text-charcoal" />
-            <span className="font-inter text-charcoal text-sm">
-              {user.email?.split('@')[0]}
-            </span>
-          </div>
-          <Button
-            onClick={handleAuthAction}
-            variant="outline"
-            size="sm"
-            className={`${isMobile ? 'w-full justify-start text-left' : ''} border-pastel-pink text-charcoal hover:bg-pastel-pink/10`}
-          >
-            <LogOut size={18} className="mr-2" />
-            Cerrar Sesión
-          </Button>
-        </>
-      );
+      return <UserMenu />;
     } else {
       return (
         <Button

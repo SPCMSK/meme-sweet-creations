@@ -9,6 +9,75 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      club_discounts: {
+        Row: {
+          code: string
+          created_at: string
+          description: string | null
+          discount_percentage: number
+          id: string
+          is_active: boolean | null
+          tier_required: string | null
+          title: string
+          valid_until: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          description?: string | null
+          discount_percentage: number
+          id?: string
+          is_active?: boolean | null
+          tier_required?: string | null
+          title: string
+          valid_until: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          description?: string | null
+          discount_percentage?: number
+          id?: string
+          is_active?: boolean | null
+          tier_required?: string | null
+          title?: string
+          valid_until?: string
+        }
+        Relationships: []
+      }
+      club_subscriptions: {
+        Row: {
+          created_at: string
+          description: string | null
+          features: Json
+          id: string
+          is_active: boolean | null
+          name: string
+          price: number
+          tier: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          features: Json
+          id?: string
+          is_active?: boolean | null
+          name: string
+          price: number
+          tier: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          features?: Json
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          price?: number
+          tier?: string
+        }
+        Relationships: []
+      }
       contact_requests: {
         Row: {
           created_at: string | null
@@ -38,6 +107,35 @@ export type Database = {
           voucher_url?: string | null
         }
         Relationships: []
+      }
+      favorite_products: {
+        Row: {
+          created_at: string
+          id: string
+          product_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          product_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          product_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "favorite_products_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       orders: {
         Row: {
@@ -93,6 +191,39 @@ export type Database = {
           image_url?: string | null
           name?: string
           price?: number
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          first_name: string
+          id: string
+          is_club_member: boolean | null
+          last_name: string
+          subscription_tier: string | null
+          updated_at: string
+          username: string
+        }
+        Insert: {
+          created_at?: string
+          first_name: string
+          id: string
+          is_club_member?: boolean | null
+          last_name: string
+          subscription_tier?: string | null
+          updated_at?: string
+          username: string
+        }
+        Update: {
+          created_at?: string
+          first_name?: string
+          id?: string
+          is_club_member?: boolean | null
+          last_name?: string
+          subscription_tier?: string | null
+          updated_at?: string
+          username?: string
         }
         Relationships: []
       }
