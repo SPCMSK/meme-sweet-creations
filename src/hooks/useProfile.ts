@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabaseClient';
+import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface Profile {
@@ -10,6 +10,8 @@ interface Profile {
   last_name: string;
   is_club_member: boolean;
   subscription_tier: string | null;
+  role: string;
+  avatar_url: string | null;
   created_at: string;
   updated_at: string;
 }

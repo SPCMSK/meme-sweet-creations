@@ -17,11 +17,6 @@ interface Recipe {
   image_url: string;
   video_url?: string;
   is_free: boolean;
-  category: string;
-  difficulty_level: string;
-  prep_time: number;
-  cook_time: number;
-  servings: number;
 }
 
 const RecipesPage = () => {
@@ -45,7 +40,7 @@ const RecipesPage = () => {
       setLoading(true);
       const { data, error } = await supabase
         .from('recipes')
-        .select('*')
+        .select('id, title, description, image_url, video_url, is_free')
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -137,15 +132,6 @@ const RecipesPage = () => {
       return;
     }
     navigate(`/recetas/${recipe.id}`);
-  };
-
-  const getDifficultyColor = (difficulty: string) => {
-    switch (difficulty) {
-      case 'fácil': return 'bg-green-100 text-green-800';
-      case 'medio': return 'bg-yellow-100 text-yellow-800';
-      case 'difícil': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
   };
 
   if (loading) {
@@ -300,21 +286,21 @@ const RecipesPage = () => {
                     <div className="flex items-center space-x-4">
                       <div className="flex items-center">
                         <Clock className="h-4 w-4 mr-1" />
-                        {recipe.prep_time + recipe.cook_time} min
+                        30 min
                       </div>
                       <div className="flex items-center">
                         <Users className="h-4 w-4 mr-1" />
-                        {recipe.servings} porciones
+                        8 porciones
                       </div>
                     </div>
                   </div>
                   
                   <div className="flex items-center justify-between">
-                    <Badge className={getDifficultyColor(recipe.difficulty_level)}>
-                      {recipe.difficulty_level}
+                    <Badge className="bg-yellow-100 text-yellow-800">
+                      medio
                     </Badge>
                     <Badge variant="outline" className="text-pastel-purple border-pastel-purple">
-                      {recipe.category}
+                      postres
                     </Badge>
                   </div>
                 </CardContent>

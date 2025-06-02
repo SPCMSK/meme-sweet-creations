@@ -16,7 +16,6 @@ interface Recipe {
   title: string;
   description: string;
   is_free: boolean;
-  category: string;
   created_at: string;
 }
 
@@ -27,7 +26,6 @@ interface Order {
   total_price: number;
   status: string;
   created_at: string;
-  contact_info: any;
 }
 
 const AdminPage = () => {
@@ -62,7 +60,7 @@ const AdminPage = () => {
       // Obtener recetas
       const { data: recipesData, error: recipesError } = await supabase
         .from('recipes')
-        .select('id, title, description, is_free, category, created_at')
+        .select('id, title, description, is_free, created_at')
         .order('created_at', { ascending: false });
 
       if (recipesError) {
@@ -74,7 +72,7 @@ const AdminPage = () => {
       // Obtener pedidos
       const { data: ordersData, error: ordersError } = await supabase
         .from('orders')
-        .select('*')
+        .select('id, user_id, products, total_price, status, created_at')
         .order('created_at', { ascending: false });
 
       if (ordersError) {
@@ -275,9 +273,6 @@ const AdminPage = () => {
                       <Badge className={recipe.is_free ? 'bg-green-100 text-green-800' : 'bg-pastel-purple text-white'}>
                         {recipe.is_free ? 'Gratis' : 'Premium'}
                       </Badge>
-                      <Badge variant="outline">
-                        {recipe.category}
-                      </Badge>
                       <span className="text-sm text-charcoal/60">
                         {new Date(recipe.created_at).toLocaleDateString()}
                       </span>
@@ -303,7 +298,7 @@ const AdminPage = () => {
                           Pedido #{order.id.slice(0, 8)}
                         </CardTitle>
                         <CardDescription className="font-inter">
-                          {order.contact_info?.name || 'Cliente'} - ${order.total_price}
+                          Cliente - ${order.total_price}
                         </CardDescription>
                       </div>
                       <Badge className={getStatusColor(order.status)}>
