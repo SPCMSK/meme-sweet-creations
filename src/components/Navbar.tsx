@@ -13,16 +13,35 @@ const Navbar = () => {
   const navigate = useNavigate();
 
   const navigationItems = [
-    { name: 'Inicio', href: '#inicio' },
-    { name: 'Productos', href: '#productos' },
+    { name: 'Inicio', href: '/' },
+    { name: 'Productos', href: '/productos' },
+    { name: 'Club Delicias', href: '/club-delicias' },
     { name: 'Historia', href: '#historia' },
     { name: 'Testimonios', href: '#testimonios' },
     { name: 'Encargos', href: '#encargos' },
-    { name: 'Club Delicias', href: '#club' },
   ];
 
   const handleAuthAction = () => {
     navigate('/auth');
+  };
+
+  const handleNavClick = (href: string) => {
+    if (href.startsWith('#')) {
+      // Scroll to section on home page
+      if (window.location.pathname !== '/') {
+        navigate('/');
+        setTimeout(() => {
+          const element = document.querySelector(href);
+          element?.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
+      } else {
+        const element = document.querySelector(href);
+        element?.scrollIntoView({ behavior: 'smooth' });
+      }
+    } else {
+      navigate(href);
+    }
+    setIsMenuOpen(false);
   };
 
   const renderAuthSection = (isMobile = false) => {
@@ -71,14 +90,14 @@ const Navbar = () => {
           <div className="hidden md:block">
             <div className="ml-10 flex items-baseline space-x-8">
               {navigationItems.map((item) => (
-                <a
+                <button
                   key={item.name}
-                  href={item.href}
+                  onClick={() => handleNavClick(item.href)}
                   className="font-inter text-charcoal hover:text-pastel-purple transition-colors duration-300 relative group"
                 >
                   {item.name}
                   <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-pastel-purple transition-all duration-300 group-hover:w-full"></span>
-                </a>
+                </button>
               ))}
             </div>
           </div>
@@ -128,14 +147,13 @@ const Navbar = () => {
           <div className="md:hidden">
             <div className="px-2 pt-2 pb-3 space-y-1 bg-warm-white border-t border-pastel-pink/20">
               {navigationItems.map((item) => (
-                <a
+                <button
                   key={item.name}
-                  href={item.href}
-                  className="block px-3 py-2 font-inter text-charcoal hover:text-pastel-purple transition-colors duration-300"
-                  onClick={() => setIsMenuOpen(false)}
+                  onClick={() => handleNavClick(item.href)}
+                  className="block w-full text-left px-3 py-2 font-inter text-charcoal hover:text-pastel-purple transition-colors duration-300"
                 >
                   {item.name}
-                </a>
+                </button>
               ))}
               {/* Separador y Auth Section para Mobile */}
               <div className="border-t border-pastel-pink/30 my-2"></div>

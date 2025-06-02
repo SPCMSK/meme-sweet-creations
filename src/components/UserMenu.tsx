@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { User, Settings, Heart, Tag, ShoppingBag, LogOut, Crown } from 'lucide-react';
+import { User, Settings, Heart, Tag, ShoppingBag, LogOut, Crown, UserCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -51,6 +51,11 @@ const UserMenu = () => {
       </DropdownMenuTrigger>
       
       <DropdownMenuContent className="w-56" align="end">
+        <DropdownMenuItem onClick={() => navigate('/mi-cuenta')}>
+          <UserCircle className="mr-2 h-4 w-4" />
+          <span>Mi Cuenta</span>
+        </DropdownMenuItem>
+        
         <DropdownMenuItem onClick={() => navigate('/profile')}>
           <Settings className="mr-2 h-4 w-4" />
           <span>Ver y Editar Perfil</span>
@@ -77,6 +82,16 @@ const UserMenu = () => {
           <ShoppingBag className="mr-2 h-4 w-4" />
           <span>Mis Pedidos</span>
         </DropdownMenuItem>
+
+        {profile.role === 'admin' && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => navigate('/admin')}>
+              <Crown className="mr-2 h-4 w-4" />
+              <span>Panel de Admin</span>
+            </DropdownMenuItem>
+          </>
+        )}
         
         <DropdownMenuSeparator />
         

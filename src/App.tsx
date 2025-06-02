@@ -17,6 +17,10 @@ import UserFavoritesPage from "./pages/UserFavoritesPage";
 import UserOrdersPage from "./pages/UserOrdersPage";
 import UserRecipesPage from "./pages/UserRecipesPage";
 import UserDiscountsPage from "./pages/UserDiscountsPage";
+import ClubDeliciasPage from "./pages/ClubDeliciasPage";
+import RecipesPage from "./pages/RecipesPage";
+import AdminPage from "./pages/AdminPage";
+import UserAccountPage from "./pages/UserAccountPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -39,6 +43,10 @@ const App = () => (
             <Route path="/profile/recipes" element={<UserRecipesPage />} />
             <Route path="/profile/discounts" element={<UserDiscountsPage />} />
             <Route path="/club-subscriptions" element={<ClubSubscriptionsPage />} />
+            <Route path="/club-delicias" element={<ClubDeliciasPage />} />
+            <Route path="/recetas" element={<RecipesPage />} />
+            <Route path="/admin" element={<AdminPage />} />
+            <Route path="/mi-cuenta" element={<UserAccountPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
