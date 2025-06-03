@@ -196,31 +196,37 @@ export type Database = {
       }
       profiles: {
         Row: {
+          avatar_url: string | null
           created_at: string
           first_name: string
           id: string
           is_club_member: boolean | null
           last_name: string
+          role: string | null
           subscription_tier: string | null
           updated_at: string
           username: string
         }
         Insert: {
+          avatar_url?: string | null
           created_at?: string
           first_name: string
           id: string
           is_club_member?: boolean | null
           last_name: string
+          role?: string | null
           subscription_tier?: string | null
           updated_at?: string
           username: string
         }
         Update: {
+          avatar_url?: string | null
           created_at?: string
           first_name?: string
           id?: string
           is_club_member?: boolean | null
           last_name?: string
+          role?: string | null
           subscription_tier?: string | null
           updated_at?: string
           username?: string

@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useReducer, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -13,207 +13,177 @@ export interface CartItem {
   category?: string;
 }
 
-interface CartState {
+interface CartContextType {
   items: CartItem[];
-  total: number;
   itemCount: number;
+  total: number;
   isOpen: boolean;
-}
-
-type CartAction =
-  | { type: 'ADD_ITEM'; payload: Omit<CartItem, 'quantity'> }
-  | { type: 'REMOVE_ITEM'; payload: string }
-  | { type: 'UPDATE_QUANTITY'; payload: { id: string; quantity: number } }
-  | { type: 'CLEAR_CART' }
-  | { type: 'TOGGLE_CART' }
-  | { type: 'SET_CART_OPEN'; payload: boolean }
-  | { type: 'LOAD_CART'; payload: CartItem[] };
-
-const initialState: CartState = {
-  items: [],
-  total: 0,
-  itemCount: 0,
-  isOpen: false,
-};
-
-function cartReducer(state: CartState, action: CartAction): CartState {
-  switch (action.type) {
-    case 'ADD_ITEM': {
-      const existingItem = state.items.find(item => item.id === action.payload.id);
-      let newItems: CartItem[];
-
-      if (existingItem) {
-        newItems = state.items.map(item =>
-          item.id === action.payload.id
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
-        );
-      } else {
-        newItems = [...state.items, { ...action.payload, quantity: 1 }];
-      }
-
-      const total = newItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-      const itemCount = newItems.reduce((sum, item) => sum + item.quantity, 0);
-
-      return { ...state, items: newItems, total, itemCount };
-    }
-
-    case 'REMOVE_ITEM': {
-      const newItems = state.items.filter(item => item.id !== action.payload);
-      const total = newItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-      const itemCount = newItems.reduce((sum, item) => sum + item.quantity, 0);
-
-      return { ...state, items: newItems, total, itemCount };
-    }
-
-    case 'UPDATE_QUANTITY': {
-      if (action.payload.quantity <= 0) {
-        return cartReducer(state, { type: 'REMOVE_ITEM', payload: action.payload.id });
-      }
-
-      const newItems = state.items.map(item =>
-        item.id === action.payload.id
-          ? { ...item, quantity: action.payload.quantity }
-          : item
-      );
-
-      const total = newItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-      const itemCount = newItems.reduce((sum, item) => sum + item.quantity, 0);
-
-      return { ...state, items: newItems, total, itemCount };
-    }
-
-    case 'CLEAR_CART':
-      return { ...state, items: [], total: 0, itemCount: 0 };
-
-    case 'TOGGLE_CART':
-      return { ...state, isOpen: !state.isOpen };
-
-    case 'SET_CART_OPEN':
-      return { ...state, isOpen: action.payload };
-
-    case 'LOAD_CART':
-      const total = action.payload.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-      const itemCount = action.payload.reduce((sum, item) => sum + item.quantity, 0);
-      return { ...state, items: action.payload, total, itemCount };
-
-    default:
-      return state;
-  }
-}
-
-interface CartContextType extends CartState {
   addItem: (item: Omit<CartItem, 'quantity'>) => void;
   removeItem: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
   clearCart: () => void;
   toggleCart: () => void;
-  setCartOpen: (open: boolean) => void;
+  closeCart: () => void;
   checkout: () => Promise<void>;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
-export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [state, dispatch] = useReducer(cartReducer, initialState);
+export const useCart = () => {
+  const context = useContext(CartContext);
+  if (!context) {
+    throw new Error('useCart must be used within a CartProvider');
+  }
+  return context;
+};
+
+export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const [items, setItems] = useState<CartItem[]>([]);
+  const [isOpen, setIsOpen] = useState(false);
   const { user } = useAuth();
 
   // Cargar carrito desde localStorage al inicializar
   useEffect(() => {
-    const savedCart = localStorage.getItem('delicias-cart');
+    const savedCart = localStorage.getItem('cart');
     if (savedCart) {
       try {
-        const parsedCart = JSON.parse(savedCart);
-        dispatch({ type: 'LOAD_CART', payload: parsedCart });
+        setItems(JSON.parse(savedCart));
       } catch (error) {
         console.error('Error loading cart from localStorage:', error);
+        localStorage.removeItem('cart');
       }
     }
   }, []);
 
   // Guardar carrito en localStorage cuando cambie
   useEffect(() => {
-    localStorage.setItem('delicias-cart', JSON.stringify(state.items));
-  }, [state.items]);
+    localStorage.setItem('cart', JSON.stringify(items));
+  }, [items]);
 
-  const addItem = (item: Omit<CartItem, 'quantity'>) => {
-    dispatch({ type: 'ADD_ITEM', payload: item });
-    toast.success(`${item.name} agregado al carrito`);
+  const addItem = (newItem: Omit<CartItem, 'quantity'>) => {
+    setItems(prevItems => {
+      const existingItem = prevItems.find(item => item.id === newItem.id);
+      
+      if (existingItem) {
+        // Si el item ya existe, incrementar cantidad
+        return prevItems.map(item =>
+          item.id === newItem.id
+            ? { ...item, quantity: item.quantity + 1 }
+            : item
+        );
+      } else {
+        // Si es nuevo, agregarlo con cantidad 1
+        return [...prevItems, { ...newItem, quantity: 1 }];
+      }
+    });
+
+    toast.success(`${newItem.name} añadido al carrito`);
   };
 
   const removeItem = (id: string) => {
-    const item = state.items.find(item => item.id === id);
-    dispatch({ type: 'REMOVE_ITEM', payload: id });
-    if (item) {
-      toast.info(`${item.name} eliminado del carrito`);
-    }
+    setItems(prevItems => {
+      const itemToRemove = prevItems.find(item => item.id === id);
+      const newItems = prevItems.filter(item => item.id !== id);
+      
+      if (itemToRemove) {
+        toast.success(`${itemToRemove.name} eliminado del carrito`);
+      }
+      
+      return newItems;
+    });
   };
 
   const updateQuantity = (id: string, quantity: number) => {
-    dispatch({ type: 'UPDATE_QUANTITY', payload: { id, quantity } });
+    if (quantity <= 0) {
+      removeItem(id);
+      return;
+    }
+
+    setItems(prevItems =>
+      prevItems.map(item =>
+        item.id === id ? { ...item, quantity } : item
+      )
+    );
   };
 
   const clearCart = () => {
-    dispatch({ type: 'CLEAR_CART' });
-    toast.info('Carrito vaciado');
+    setItems([]);
+    localStorage.removeItem('cart');
+    toast.success('Carrito vaciado');
   };
 
   const toggleCart = () => {
-    dispatch({ type: 'TOGGLE_CART' });
+    setIsOpen(!isOpen);
   };
 
-  const setCartOpen = (open: boolean) => {
-    dispatch({ type: 'SET_CART_OPEN', payload: open });
+  const closeCart = () => {
+    setIsOpen(false);
   };
 
   const checkout = async () => {
-    if (state.items.length === 0) {
+    if (!user) {
+      toast.error('Debes iniciar sesión para realizar una compra');
+      return;
+    }
+
+    if (items.length === 0) {
       toast.error('El carrito está vacío');
       return;
     }
 
     try {
-      // Guardar orden en Supabase si el usuario está autenticado
-      if (user) {
-        const orderData = {
-          user_id: user.id,
-          products: state.items,
-          total_price: state.total,
-          status: 'pendiente'
-        };
+      // Convertir items a formato JSON compatible con Supabase
+      const orderData = {
+        user_id: user.id,
+        products: JSON.stringify(items) as any, // Cast to any to satisfy the Json type
+        total_price: total,
+        status: 'pendiente'
+      };
 
-        const { error } = await supabase
-          .from('orders')
-          .insert([orderData]);
+      const { data, error } = await supabase
+        .from('orders')
+        .insert([orderData])
+        .select()
+        .single();
 
-        if (error) {
-          console.error('Error saving order:', error);
-          toast.error('Error al guardar la orden');
-          return;
-        }
-
-        toast.success('Orden guardada exitosamente');
-        clearCart();
-        setCartOpen(false);
-      } else {
-        // Para usuarios no autenticados, redirigir a login o procesar como guest
-        toast.info('Inicia sesión para completar tu compra');
+      if (error) {
+        console.error('Error creating order:', error);
+        toast.error('Error al procesar el pedido. Inténtalo de nuevo.');
+        return;
       }
+
+      console.log('Order created successfully:', data);
+      toast.success('¡Pedido creado exitosamente!');
+      
+      // Limpiar carrito después de la compra exitosa
+      clearCart();
+      closeCart();
+
+      // Aquí se podría integrar con un proveedor de pagos
+      // Por ejemplo: redirectToPayment(data.id);
+      
     } catch (error) {
-      console.error('Error during checkout:', error);
-      toast.error('Error durante el checkout');
+      console.error('Checkout error:', error);
+      toast.error('Error inesperado al procesar el pedido');
     }
   };
 
+  // Calcular valores derivados
+  const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
+  const total = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
   const value: CartContextType = {
-    ...state,
+    items,
+    itemCount,
+    total,
+    isOpen,
     addItem,
     removeItem,
     updateQuantity,
     clearCart,
     toggleCart,
-    setCartOpen,
-    checkout,
+    closeCart,
+    checkout
   };
 
   return (
@@ -221,12 +191,4 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       {children}
     </CartContext.Provider>
   );
-};
-
-export const useCart = () => {
-  const context = useContext(CartContext);
-  if (context === undefined) {
-    throw new Error('useCart must be used within a CartProvider');
-  }
-  return context;
 };
