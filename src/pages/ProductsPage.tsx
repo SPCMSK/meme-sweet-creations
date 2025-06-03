@@ -1,9 +1,9 @@
 
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { ShoppingCart, Filter, Search } from 'lucide-react';
+import { Filter, Search } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import AddToCartButton from '@/components/AddToCartButton';
 
 interface Product {
   id: number;
@@ -164,13 +164,7 @@ const ProductsPage = () => {
                           </span>
                         )}
                       </div>
-                      <Button 
-                        size="sm"
-                        className="bg-pastel-pink hover:bg-pastel-pink/90 text-charcoal font-medium rounded-full"
-                      >
-                        <ShoppingCart size={16} className="mr-2" />
-                        Agregar
-                      </Button>
+                      <AddToCartButton product={product} />
                     </div>
                   </div>
                 </div>
@@ -275,13 +269,7 @@ const ProductsPage = () => {
                         </span>
                       )}
                     </div>
-                    <Button 
-                      size="sm"
-                      className="bg-pastel-pink hover:bg-pastel-pink/90 text-charcoal font-medium rounded-full transition-all duration-300 hover:scale-105"
-                    >
-                      <ShoppingCart size={16} className="mr-2" />
-                      Agregar
-                    </Button>
+                    <AddToCartButton product={product} />
                   </div>
                 </div>
               </div>

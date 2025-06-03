@@ -1,164 +1,100 @@
 
 import React, { useState } from 'react';
-import { ShoppingCart, LogIn } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '../contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { Menu, X } from 'lucide-react';
 import UserMenu from './UserMenu';
+import CartIcon from './CartIcon';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [cartItems, setCartItems] = useState(0);
-  const { user, loading } = useAuth();
-  const navigate = useNavigate();
+  const location = useLocation();
 
-  const navigationItems = [
-    { name: 'Inicio', href: '/' },
-    { name: 'Productos', href: '/productos' },
-    { name: 'Club Delicias', href: '/club-delicias' },
-    { name: 'Historia', href: '#historia' },
-    { name: 'Testimonios', href: '#testimonios' },
-    { name: 'Encargos', href: '#encargos' },
+  const navItems = [
+    { name: 'Inicio', path: '/' },
+    { name: 'Productos', path: '/productos' },
+    { name: 'Club Delicias', path: '/club-delicias' },
+    { name: 'Recetas', path: '/recetas' },
   ];
 
-  const handleAuthAction = () => {
-    navigate('/auth');
-  };
-
-  const handleNavClick = (href: string) => {
-    if (href.startsWith('#')) {
-      // Scroll to section on home page
-      if (window.location.pathname !== '/') {
-        navigate('/');
-        setTimeout(() => {
-          const element = document.querySelector(href);
-          element?.scrollIntoView({ behavior: 'smooth' });
-        }, 100);
-      } else {
-        const element = document.querySelector(href);
-        element?.scrollIntoView({ behavior: 'smooth' });
-      }
-    } else {
-      navigate(href);
+  const isActivePath = (path: string) => {
+    if (path === '/') {
+      return location.pathname === '/';
     }
-    setIsMenuOpen(false);
-  };
-
-  const renderAuthSection = (isMobile = false) => {
-    if (loading) {
-      return (
-        <Button
-          variant="ghost"
-          className={`${isMobile ? 'w-full justify-start text-left' : ''} text-charcoal`}
-          disabled
-        >
-          Cargando...
-        </Button>
-      );
-    }
-
-    if (user) {
-      return <UserMenu />;
-    } else {
-      return (
-        <Button
-          onClick={handleAuthAction}
-          variant="outline"
-          size="sm"
-          className={`${isMobile ? 'w-full justify-start text-left' : ''} border-pastel-pink text-charcoal hover:bg-pastel-pink/10`}
-        >
-          <LogIn size={18} className="mr-2" />
-          Iniciar Sesión
-        </Button>
-      );
-    }
+    return location.pathname.startsWith(path);
   };
 
   return (
-    <nav className="fixed top-0 w-full bg-warm-white/95 backdrop-blur-sm border-b border-pastel-pink/20 z-50 animate-fade-in">
+    <nav className="fixed top-0 left-0 right-0 bg-warm-white/95 backdrop-blur-sm shadow-sm z-40">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <div className="flex-shrink-0">
-            <h1 className="font-playfair text-2xl font-bold text-charcoal cursor-pointer"
-                onClick={() => navigate('/')}>
-              Delicias de <span className="text-pastel-purple">Meme</span>
-            </h1>
-          </div>
+          <Link to="/" className="flex items-center space-x-2">
+            <div className="w-8 h-8 bg-pastel-pink rounded-full flex items-center justify-center">
+              <span className="text-charcoal font-bold text-sm">🧁</span>
+            </div>
+            <span className="font-playfair text-xl font-bold text-charcoal">
+              Delicias de Meme
+            </span>
+          </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:block">
-            <div className="ml-10 flex items-baseline space-x-8">
-              {navigationItems.map((item) => (
-                <button
-                  key={item.name}
-                  onClick={() => handleNavClick(item.href)}
-                  className="font-inter text-charcoal hover:text-pastel-purple transition-colors duration-300 relative group"
-                >
-                  {item.name}
-                  <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-pastel-purple transition-all duration-300 group-hover:w-full"></span>
-                </button>
-              ))}
-            </div>
+          <div className="hidden md:flex items-center space-x-8">
+            {navItems.map((item) => (
+              <Link
+                key={item.name}
+                to={item.path}
+                className={`font-inter text-sm font-medium transition-colors hover:text-pastel-purple ${
+                  isActivePath(item.path)
+                    ? 'text-pastel-purple border-b-2 border-pastel-purple pb-1'
+                    : 'text-charcoal'
+                }`}
+              >
+                {item.name}
+              </Link>
+            ))}
           </div>
 
-          {/* Cart, Auth (Desktop) and Mobile menu button */}
-          <div className="flex items-center space-x-4">
-            {/* Auth Section para Desktop */}
-            <div className="hidden md:flex items-center space-x-2">
-              {renderAuthSection()}
-            </div>
+          {/* Desktop Actions */}
+          <div className="hidden md:flex items-center space-x-4">
+            <CartIcon />
+            <UserMenu />
+          </div>
 
+          {/* Mobile menu button */}
+          <div className="md:hidden flex items-center space-x-2">
+            <CartIcon />
             <Button
-              variant="outline"
-              size="sm"
-              className="relative border-pastel-pink text-charcoal hover:bg-pastel-pink/10"
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="text-charcoal"
             >
-              <ShoppingCart size={18} />
-              {cartItems > 0 && (
-                <span className="absolute -top-2 -right-2 bg-pastel-purple text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                  {cartItems}
-                </span>
-              )}
+              {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </Button>
-
-            {/* Mobile menu button */}
-            <div className="md:hidden">
-              <button
-                onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="text-charcoal hover:text-pastel-purple transition-colors duration-300 p-2 rounded-md"
-              >
-                {isMenuOpen ? (
-                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                ) : (
-                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                  </svg>
-                )}
-              </button>
-            </div>
           </div>
         </div>
 
         {/* Mobile Navigation */}
         {isMenuOpen && (
-          <div className="md:hidden">
-            <div className="px-2 pt-2 pb-3 space-y-1 bg-warm-white border-t border-pastel-pink/20">
-              {navigationItems.map((item) => (
-                <button
+          <div className="md:hidden border-t border-pastel-pink/20 bg-warm-white">
+            <div className="px-2 pt-2 pb-3 space-y-1">
+              {navItems.map((item) => (
+                <Link
                   key={item.name}
-                  onClick={() => handleNavClick(item.href)}
-                  className="block w-full text-left px-3 py-2 font-inter text-charcoal hover:text-pastel-purple transition-colors duration-300"
+                  to={item.path}
+                  onClick={() => setIsMenuOpen(false)}
+                  className={`block px-3 py-2 rounded-md text-base font-medium transition-colors ${
+                    isActivePath(item.path)
+                      ? 'text-pastel-purple bg-pastel-pink/20'
+                      : 'text-charcoal hover:text-pastel-purple hover:bg-pastel-pink/10'
+                  }`}
                 >
                   {item.name}
-                </button>
+                </Link>
               ))}
-              {/* Separador y Auth Section para Mobile */}
-              <div className="border-t border-pastel-pink/30 my-2"></div>
-              <div className="px-1 py-1 space-y-1">
-                {renderAuthSection(true)}
+              <div className="px-3 py-2">
+                <UserMenu />
               </div>
             </div>
           </div>

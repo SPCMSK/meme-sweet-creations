@@ -41,7 +41,14 @@ export const useProfile = () => {
         console.error('Error fetching profile:', error);
         setError(error.message);
       } else {
-        setProfile(data);
+        // Asegurar que los campos requeridos estén presentes
+        const profileWithDefaults: Profile = {
+          ...data,
+          role: data.role || 'user',
+          avatar_url: data.avatar_url || null,
+          subscription_tier: data.subscription_tier || null
+        };
+        setProfile(profileWithDefaults);
       }
     } catch (error) {
       console.error('Error:', error);

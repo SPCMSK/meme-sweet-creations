@@ -1,8 +1,8 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { ShoppingCart } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import AddToCartButton from '@/components/AddToCartButton';
 
 interface Product {
   id: number;
@@ -104,13 +104,7 @@ const ProductGallery = () => {
                   <span className="font-inter text-xl font-bold text-pastel-purple">
                     {formatPrice(product.price)}
                   </span>
-                  <Button 
-                    size="sm"
-                    className="bg-pastel-pink hover:bg-pastel-pink/90 text-charcoal font-medium rounded-full transition-all duration-300 hover:scale-105"
-                  >
-                    <ShoppingCart size={16} className="mr-2" />
-                    Agregar
-                  </Button>
+                  <AddToCartButton product={product} />
                 </div>
               </div>
             </div>
