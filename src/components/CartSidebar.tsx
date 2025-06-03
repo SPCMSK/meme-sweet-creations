@@ -13,7 +13,7 @@ const CartSidebar: React.FC = () => {
     removeItem,
     updateQuantity,
     clearCart,
-    setCartOpen,
+    closeCart,
     checkout
   } = useCart();
 
@@ -32,7 +32,7 @@ const CartSidebar: React.FC = () => {
       {/* Overlay */}
       <div
         className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
-        onClick={() => setCartOpen(false)}
+        onClick={closeCart}
       />
 
       {/* Sidebar */}
@@ -48,7 +48,7 @@ const CartSidebar: React.FC = () => {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => setCartOpen(false)}
+            onClick={closeCart}
             className="text-charcoal hover:bg-gray-100 rounded-full"
           >
             <X size={20} />
