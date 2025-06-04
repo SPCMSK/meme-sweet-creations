@@ -15,27 +15,59 @@ import OrderManager from '@/components/admin/OrderManager';
 const AdminPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { profile } = useProfile();
+  const { profile, loading: profileLoading } = useProfile();
   const [activeTab, setActiveTab] = useState('products');
 
   React.useEffect(() => {
-    if (!user) {
+    console.log('AdminPage - User:', user);
+    console.log('AdminPage - Profile:', profile);
+    console.log('AdminPage - Profile loading:', profileLoading);
+
+    if (!user && !profileLoading) {
+      console.log('No user, redirecting to auth');
       navigate('/auth');
       return;
     }
 
-    if (profile?.role !== 'admin') {
+    if (profile && profile.role !== 'admin') {
+      console.log('User is not admin, redirecting to home');
       navigate('/');
       return;
     }
-  }, [user, profile, navigate]);
+  }, [user, profile, navigate, profileLoading]);
 
-  if (!user || profile?.role !== 'admin') {
+  if (profileLoading) {
     return (
       <div className="min-h-screen bg-warm-white">
         <Navbar />
         <div className="pt-20 flex items-center justify-center">
-          <div>Verificando permisos...</div>
+          <div>Cargando perfil...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-warm-white">
+        <Navbar />
+        <div className="pt-20 flex items-center justify-center">
+          <div>Redirigiendo a autenticación...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!profile || profile.role !== 'admin') {
+    return (
+      <div className="min-h-screen bg-warm-white">
+        <Navbar />
+        <div className="pt-20 flex items-center justify-center">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-red-600 mb-2">Acceso Denegado</h2>
+            <p className="text-gray-600 mb-4">No tienes permisos de administrador.</p>
+            <Button onClick={() => navigate('/')}>Volver al inicio</Button>
+          </div>
         </div>
       </div>
     );

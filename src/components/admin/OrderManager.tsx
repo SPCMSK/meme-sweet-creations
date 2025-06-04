@@ -11,7 +11,7 @@ import { Json } from '@/integrations/supabase/types';
 
 interface Order {
   id: string;
-  user_id: string;
+  user_id: string | null;
   products: Json;
   total_price: number;
   status: string;
@@ -33,6 +33,7 @@ const OrderManager = () => {
 
   const fetchOrders = async () => {
     try {
+      console.log('Fetching orders...');
       const { data, error } = await supabase
         .from('orders')
         .select('*')
@@ -42,6 +43,7 @@ const OrderManager = () => {
         console.error('Error fetching orders:', error);
         toast.error('Error al cargar los pedidos');
       } else {
+        console.log('Orders fetched:', data);
         setOrders(data || []);
       }
     } catch (error) {
@@ -123,6 +125,14 @@ const OrderManager = () => {
   const getProductsArray = (products: Json): any[] => {
     if (Array.isArray(products)) {
       return products;
+    }
+    if (typeof products === 'string') {
+      try {
+        const parsed = JSON.parse(products);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        return [];
+      }
     }
     return [];
   };
