@@ -3,8 +3,14 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Check, Crown } from 'lucide-react';
-import { supabase } from '@/lib/supabaseClient';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { ArrowLeft, Check, Crown, CreditCard } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { useMercadoPago } from '@/hooks/useMercadoPago';
+import { toast } from 'sonner';
 import Navbar from '@/components/Navbar';
 
 interface Subscription {
@@ -19,8 +25,13 @@ interface Subscription {
 
 const ClubSubscriptionsPage = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { createPayment, redirectToPayment, loading } = useMercadoPago();
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loadingData, setLoadingData] = useState(true);
+  const [selectedSubscription, setSelectedSubscription] = useState<Subscription | null>(null);
+  const [email, setEmail] = useState(user?.email || '');
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   useEffect(() => {
     fetchSubscriptions();
@@ -42,7 +53,34 @@ const ClubSubscriptionsPage = () => {
     } catch (error) {
       console.error('Error:', error);
     } finally {
-      setLoading(false);
+      setLoadingData(false);
+    }
+  };
+
+  const handleSubscriptionPayment = async () => {
+    if (!selectedSubscription) return;
+    
+    if (!email) {
+      toast.error('Por favor ingresa tu email');
+      return;
+    }
+
+    // Convert subscription to cart item format
+    const subscriptionItem = {
+      id: selectedSubscription.id,
+      name: `Suscripción ${selectedSubscription.name}`,
+      price: selectedSubscription.price,
+      quantity: 1,
+      category: 'suscripcion'
+    };
+
+    const paymentData = await createPayment([subscriptionItem], email);
+    
+    if (paymentData) {
+      const initPoint = paymentData.sandbox_init_point || paymentData.init_point;
+      redirectToPayment(initPoint);
+      setIsDialogOpen(false);
+      toast.success('Redirigiendo a Mercado Pago...');
     }
   };
 
@@ -68,7 +106,7 @@ const ClubSubscriptionsPage = () => {
     }
   };
 
-  if (loading) {
+  if (loadingData) {
     return (
       <div className="min-h-screen bg-warm-white">
         <Navbar />
@@ -134,7 +172,7 @@ const ClubSubscriptionsPage = () => {
                 
                 <div className="mt-4">
                   <span className="text-4xl font-bold text-charcoal">
-                    ${subscription.price}
+                    ${subscription.price.toLocaleString('es-CL')}
                   </span>
                   <span className="text-charcoal/60 font-inter">/mes</span>
                 </div>
@@ -150,15 +188,56 @@ const ClubSubscriptionsPage = () => {
                   ))}
                 </div>
                 
-                <Button 
-                  className="w-full bg-pastel-purple hover:bg-pastel-purple/90 text-white"
-                  onClick={() => {
-                    // TODO: Implementar proceso de suscripción
-                    console.log('Suscribirse a:', subscription.tier);
-                  }}
-                >
-                  Suscribirse Ahora
-                </Button>
+                <Dialog open={isDialogOpen && selectedSubscription?.id === subscription.id} onOpenChange={setIsDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button 
+                      className="w-full bg-pastel-purple hover:bg-pastel-purple/90 text-white"
+                      onClick={() => setSelectedSubscription(subscription)}
+                    >
+                      <CreditCard className="mr-2 h-4 w-4" />
+                      Suscribirse Ahora
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Suscribirse a {subscription.name}</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="email">Email para la suscripción</Label>
+                        <Input
+                          id="email"
+                          type="email"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          placeholder="tu@email.com"
+                          required
+                        />
+                      </div>
+                      
+                      <div className="border-t pt-4">
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="text-sm text-gray-600">Total mensual:</span>
+                          <span className="font-bold text-lg">
+                            ${subscription.price.toLocaleString('es-CL')} CLP
+                          </span>
+                        </div>
+                        <p className="text-xs text-gray-500 mb-4">
+                          Serás redirigido a Mercado Pago para completar el pago de forma segura.
+                        </p>
+                      </div>
+
+                      <Button 
+                        onClick={handleSubscriptionPayment}
+                        disabled={loading || !email}
+                        className="w-full bg-pastel-purple hover:bg-pastel-purple/90"
+                        size="lg"
+                      >
+                        {loading ? 'Procesando...' : 'Continuar con el Pago'}
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </CardContent>
             </Card>
           ))}

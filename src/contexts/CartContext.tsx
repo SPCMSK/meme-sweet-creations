@@ -1,6 +1,5 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
@@ -24,7 +23,6 @@ interface CartContextType {
   clearCart: () => void;
   toggleCart: () => void;
   closeCart: () => void;
-  checkout: () => Promise<void>;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -40,7 +38,6 @@ export const useCart = () => {
 export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [items, setItems] = useState<CartItem[]>([]);
   const [isOpen, setIsOpen] = useState(false);
-  const { user } = useAuth();
 
   // Cargar carrito desde localStorage al inicializar
   useEffect(() => {
@@ -120,54 +117,6 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setIsOpen(false);
   };
 
-  const checkout = async () => {
-    if (!user) {
-      toast.error('Debes iniciar sesión para realizar una compra');
-      return;
-    }
-
-    if (items.length === 0) {
-      toast.error('El carrito está vacío');
-      return;
-    }
-
-    try {
-      // Convertir items a formato JSON compatible con Supabase
-      const orderData = {
-        user_id: user.id,
-        products: JSON.stringify(items) as any, // Cast to any to satisfy the Json type
-        total_price: total,
-        status: 'pendiente'
-      };
-
-      const { data, error } = await supabase
-        .from('orders')
-        .insert([orderData])
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Error creating order:', error);
-        toast.error('Error al procesar el pedido. Inténtalo de nuevo.');
-        return;
-      }
-
-      console.log('Order created successfully:', data);
-      toast.success('¡Pedido creado exitosamente!');
-      
-      // Limpiar carrito después de la compra exitosa
-      clearCart();
-      closeCart();
-
-      // Aquí se podría integrar con un proveedor de pagos
-      // Por ejemplo: redirectToPayment(data.id);
-      
-    } catch (error) {
-      console.error('Checkout error:', error);
-      toast.error('Error inesperado al procesar el pedido');
-    }
-  };
-
   // Calcular valores derivados
   const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
   const total = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -182,8 +131,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     updateQuantity,
     clearCart,
     toggleCart,
-    closeCart,
-    checkout
+    closeCart
   };
 
   return (

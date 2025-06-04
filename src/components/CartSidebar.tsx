@@ -1,8 +1,11 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { X, Minus, Plus, Trash2, ShoppingBag } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { X, Minus, Plus, Trash2, ShoppingBag, Calendar } from 'lucide-react';
 import { useCart } from '@/contexts/CartContext';
+import MercadoPagoButton from '@/components/MercadoPagoButton';
 
 const CartSidebar: React.FC = () => {
   const {
@@ -13,9 +16,10 @@ const CartSidebar: React.FC = () => {
     removeItem,
     updateQuantity,
     clearCart,
-    closeCart,
-    checkout
+    closeCart
   } = useCart();
+
+  const [deliveryDate, setDeliveryDate] = useState('');
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('es-CL', {
@@ -23,6 +27,13 @@ const CartSidebar: React.FC = () => {
       currency: 'CLP',
       minimumFractionDigits: 0
     }).format(price);
+  };
+
+  // Get minimum date (tomorrow)
+  const getMinDate = () => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return tomorrow.toISOString().split('T')[0];
   };
 
   if (!isOpen) return null;
@@ -130,6 +141,26 @@ const CartSidebar: React.FC = () => {
                     </div>
                   </div>
                 ))}
+
+                {/* Delivery Date Selection */}
+                <div className="bg-blue-50 rounded-lg p-4 border border-blue-100">
+                  <Label htmlFor="deliveryDate" className="flex items-center text-sm font-medium text-charcoal mb-2">
+                    <Calendar className="mr-2 h-4 w-4" />
+                    Fecha de entrega
+                  </Label>
+                  <Input
+                    id="deliveryDate"
+                    type="date"
+                    value={deliveryDate}
+                    onChange={(e) => setDeliveryDate(e.target.value)}
+                    min={getMinDate()}
+                    className="bg-white"
+                    required
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Selecciona cuándo quieres recibir tu pedido
+                  </p>
+                </div>
               </div>
 
               {/* Footer */}
@@ -142,12 +173,8 @@ const CartSidebar: React.FC = () => {
 
                 {/* Actions */}
                 <div className="space-y-3">
-                  <Button
-                    onClick={checkout}
-                    className="w-full bg-pastel-purple hover:bg-pastel-purple/90 text-white font-inter font-medium py-3 rounded-full transition-all duration-300 hover:scale-105"
-                  >
-                    Proceder al Pago
-                  </Button>
+                  {/* Mercado Pago Button */}
+                  <MercadoPagoButton />
                   
                   <Button
                     onClick={clearCart}

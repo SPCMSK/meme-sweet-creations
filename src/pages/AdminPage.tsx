@@ -10,6 +10,7 @@ import { useProfile } from '@/hooks/useProfile';
 import Navbar from '@/components/Navbar';
 import ProductManager from '@/components/admin/ProductManager';
 import RecipeManager from '@/components/admin/RecipeManager';
+import OrderManager from '@/components/admin/OrderManager';
 
 const AdminPage = () => {
   const navigate = useNavigate();
@@ -93,22 +94,7 @@ const AdminPage = () => {
           </TabsContent>
 
           <TabsContent value="orders">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <ShoppingCart className="mr-2 h-6 w-6" />
-                  Gestión de Pedidos
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-8">
-                  <ShoppingCart className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-500">
-                    La gestión de pedidos estará disponible próximamente.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+            <OrderManager />
           </TabsContent>
 
           <TabsContent value="users">
