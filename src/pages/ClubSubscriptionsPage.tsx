@@ -12,6 +12,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useMercadoPago } from '@/hooks/useMercadoPago';
 import { toast } from 'sonner';
 import Navbar from '@/components/Navbar';
+import { Json } from '@/integrations/supabase/types';
 
 interface Subscription {
   id: string;
@@ -19,7 +20,7 @@ interface Subscription {
   description: string;
   price: number;
   tier: string;
-  features: string[];
+  features: Json;
   is_active: boolean;
 }
 
@@ -106,6 +107,13 @@ const ClubSubscriptionsPage = () => {
     }
   };
 
+  const getFeaturesArray = (features: Json): string[] => {
+    if (Array.isArray(features)) {
+      return features.filter(f => typeof f === 'string');
+    }
+    return [];
+  };
+
   if (loadingData) {
     return (
       <div className="min-h-screen bg-warm-white">
@@ -141,106 +149,110 @@ const ClubSubscriptionsPage = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {subscriptions.map((subscription) => (
-            <Card 
-              key={subscription.id} 
-              className={`relative ${subscription.tier === 'premium' ? 'ring-2 ring-pastel-purple' : ''}`}
-            >
-              {subscription.tier === 'premium' && (
-                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                  <span className="bg-pastel-purple text-white px-4 py-1 rounded-full text-sm font-semibold">
-                    Más Popular
-                  </span>
-                </div>
-              )}
-              
-              <CardHeader className="text-center">
-                <div className="flex items-center justify-center space-x-2 mb-2">
-                  {getTierIcon(subscription.tier)}
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${getTierColor(subscription.tier)}`}>
-                    {subscription.tier.toUpperCase()}
-                  </span>
-                </div>
+          {subscriptions.map((subscription) => {
+            const featuresArray = getFeaturesArray(subscription.features);
+            
+            return (
+              <Card 
+                key={subscription.id} 
+                className={`relative ${subscription.tier === 'premium' ? 'ring-2 ring-pastel-purple' : ''}`}
+              >
+                {subscription.tier === 'premium' && (
+                  <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                    <span className="bg-pastel-purple text-white px-4 py-1 rounded-full text-sm font-semibold">
+                      Más Popular
+                    </span>
+                  </div>
+                )}
                 
-                <CardTitle className="font-playfair text-2xl text-charcoal">
-                  {subscription.name}
-                </CardTitle>
+                <CardHeader className="text-center">
+                  <div className="flex items-center justify-center space-x-2 mb-2">
+                    {getTierIcon(subscription.tier)}
+                    <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${getTierColor(subscription.tier)}`}>
+                      {subscription.tier.toUpperCase()}
+                    </span>
+                  </div>
+                  
+                  <CardTitle className="font-playfair text-2xl text-charcoal">
+                    {subscription.name}
+                  </CardTitle>
+                  
+                  <CardDescription className="font-inter text-charcoal/70">
+                    {subscription.description}
+                  </CardDescription>
+                  
+                  <div className="mt-4">
+                    <span className="text-4xl font-bold text-charcoal">
+                      ${subscription.price.toLocaleString('es-CL')}
+                    </span>
+                    <span className="text-charcoal/60 font-inter">/mes</span>
+                  </div>
+                </CardHeader>
                 
-                <CardDescription className="font-inter text-charcoal/70">
-                  {subscription.description}
-                </CardDescription>
-                
-                <div className="mt-4">
-                  <span className="text-4xl font-bold text-charcoal">
-                    ${subscription.price.toLocaleString('es-CL')}
-                  </span>
-                  <span className="text-charcoal/60 font-inter">/mes</span>
-                </div>
-              </CardHeader>
-              
-              <CardContent className="space-y-4">
-                <div className="space-y-3">
-                  {subscription.features.map((feature, index) => (
-                    <div key={index} className="flex items-start space-x-3">
-                      <Check className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
-                      <span className="font-inter text-charcoal text-sm">{feature}</span>
-                    </div>
-                  ))}
-                </div>
-                
-                <Dialog open={isDialogOpen && selectedSubscription?.id === subscription.id} onOpenChange={setIsDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button 
-                      className="w-full bg-pastel-purple hover:bg-pastel-purple/90 text-white"
-                      onClick={() => setSelectedSubscription(subscription)}
-                    >
-                      <CreditCard className="mr-2 h-4 w-4" />
-                      Suscribirse Ahora
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-md">
-                    <DialogHeader>
-                      <DialogTitle>Suscribirse a {subscription.name}</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="email">Email para la suscripción</Label>
-                        <Input
-                          id="email"
-                          type="email"
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          placeholder="tu@email.com"
-                          required
-                        />
+                <CardContent className="space-y-4">
+                  <div className="space-y-3">
+                    {featuresArray.map((feature, index) => (
+                      <div key={index} className="flex items-start space-x-3">
+                        <Check className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
+                        <span className="font-inter text-charcoal text-sm">{feature}</span>
                       </div>
-                      
-                      <div className="border-t pt-4">
-                        <div className="flex justify-between items-center mb-2">
-                          <span className="text-sm text-gray-600">Total mensual:</span>
-                          <span className="font-bold text-lg">
-                            ${subscription.price.toLocaleString('es-CL')} CLP
-                          </span>
-                        </div>
-                        <p className="text-xs text-gray-500 mb-4">
-                          Serás redirigido a Mercado Pago para completar el pago de forma segura.
-                        </p>
-                      </div>
-
+                    ))}
+                  </div>
+                  
+                  <Dialog open={isDialogOpen && selectedSubscription?.id === subscription.id} onOpenChange={setIsDialogOpen}>
+                    <DialogTrigger asChild>
                       <Button 
-                        onClick={handleSubscriptionPayment}
-                        disabled={loading || !email}
-                        className="w-full bg-pastel-purple hover:bg-pastel-purple/90"
-                        size="lg"
+                        className="w-full bg-pastel-purple hover:bg-pastel-purple/90 text-white"
+                        onClick={() => setSelectedSubscription(subscription)}
                       >
-                        {loading ? 'Procesando...' : 'Continuar con el Pago'}
+                        <CreditCard className="mr-2 h-4 w-4" />
+                        Suscribirse Ahora
                       </Button>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              </CardContent>
-            </Card>
-          ))}
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-md">
+                      <DialogHeader>
+                        <DialogTitle>Suscribirse a {subscription.name}</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="email">Email para la suscripción</Label>
+                          <Input
+                            id="email"
+                            type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            placeholder="tu@email.com"
+                            required
+                          />
+                        </div>
+                        
+                        <div className="border-t pt-4">
+                          <div className="flex justify-between items-center mb-2">
+                            <span className="text-sm text-gray-600">Total mensual:</span>
+                            <span className="font-bold text-lg">
+                              ${subscription.price.toLocaleString('es-CL')} CLP
+                            </span>
+                          </div>
+                          <p className="text-xs text-gray-500 mb-4">
+                            Serás redirigido a Mercado Pago para completar el pago de forma segura.
+                          </p>
+                        </div>
+
+                        <Button 
+                          onClick={handleSubscriptionPayment}
+                          disabled={loading || !email}
+                          className="w-full bg-pastel-purple hover:bg-pastel-purple/90"
+                          size="lg"
+                        >
+                          {loading ? 'Procesando...' : 'Continuar con el Pago'}
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
 
         <div className="mt-12 text-center">

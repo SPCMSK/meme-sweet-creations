@@ -7,11 +7,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ShoppingCart, Calendar, User, Package, Eye } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { Json } from '@/integrations/supabase/types';
 
 interface Order {
   id: string;
   user_id: string;
-  products: any[];
+  products: Json;
   total_price: number;
   status: string;
   created_at: string;
@@ -119,6 +120,13 @@ const OrderManager = () => {
     });
   };
 
+  const getProductsArray = (products: Json): any[] => {
+    if (Array.isArray(products)) {
+      return products;
+    }
+    return [];
+  };
+
   const filteredOrders = selectedStatus === 'all' 
     ? orders 
     : orders.filter(order => order.status?.toLowerCase() === selectedStatus.toLowerCase());
@@ -172,87 +180,91 @@ const OrderManager = () => {
           </div>
         ) : (
           <div className="space-y-4">
-            {filteredOrders.map((order) => (
-              <div key={order.id} className="border rounded-lg p-4 hover:bg-gray-50">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center space-x-3">
-                    <Badge className={getStatusColor(order.status)}>
-                      {getStatusLabel(order.status)}
-                    </Badge>
-                    <span className="text-sm text-gray-500">
-                      #{order.id.slice(0, 8)}
-                    </span>
-                    {order.external_reference && (
-                      <span className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
-                        Ref: {order.external_reference}
+            {filteredOrders.map((order) => {
+              const productsArray = getProductsArray(order.products);
+              
+              return (
+                <div key={order.id} className="border rounded-lg p-4 hover:bg-gray-50">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center space-x-3">
+                      <Badge className={getStatusColor(order.status)}>
+                        {getStatusLabel(order.status)}
+                      </Badge>
+                      <span className="text-sm text-gray-500">
+                        #{order.id.slice(0, 8)}
                       </span>
+                      {order.external_reference && (
+                        <span className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                          Ref: {order.external_reference}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <span className="font-semibold text-lg">
+                        {formatPrice(order.total_price)}
+                      </span>
+                      <Select
+                        value={order.status || 'pending'}
+                        onValueChange={(value) => updateOrderStatus(order.id, value)}
+                      >
+                        <SelectTrigger className="w-32">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="pending">Pendiente</SelectItem>
+                          <SelectItem value="completed">Completado</SelectItem>
+                          <SelectItem value="cancelled">Cancelado</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
+                    <div className="flex items-center space-x-2">
+                      <Calendar className="h-4 w-4 text-gray-400" />
+                      <span className="text-sm text-gray-600">
+                        {formatDate(order.created_at)}
+                      </span>
+                    </div>
+                    
+                    {order.payer_email && (
+                      <div className="flex items-center space-x-2">
+                        <User className="h-4 w-4 text-gray-400" />
+                        <span className="text-sm text-gray-600">
+                          {order.payer_email}
+                        </span>
+                      </div>
+                    )}
+
+                    {order.mp_payment_id && (
+                      <div className="flex items-center space-x-2">
+                        <Eye className="h-4 w-4 text-gray-400" />
+                        <span className="text-sm text-gray-600">
+                          MP: {order.mp_payment_id}
+                        </span>
+                      </div>
                     )}
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <span className="font-semibold text-lg">
-                      {formatPrice(order.total_price)}
-                    </span>
-                    <Select
-                      value={order.status || 'pending'}
-                      onValueChange={(value) => updateOrderStatus(order.id, value)}
-                    >
-                      <SelectTrigger className="w-32">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="pending">Pendiente</SelectItem>
-                        <SelectItem value="completed">Completado</SelectItem>
-                        <SelectItem value="cancelled">Cancelado</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
-                  <div className="flex items-center space-x-2">
-                    <Calendar className="h-4 w-4 text-gray-400" />
-                    <span className="text-sm text-gray-600">
-                      {formatDate(order.created_at)}
-                    </span>
-                  </div>
-                  
-                  {order.payer_email && (
-                    <div className="flex items-center space-x-2">
-                      <User className="h-4 w-4 text-gray-400" />
-                      <span className="text-sm text-gray-600">
-                        {order.payer_email}
-                      </span>
+                  <div className="border-t pt-3">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <Package className="h-4 w-4 text-gray-400" />
+                      <span className="text-sm font-medium text-gray-700">Productos:</span>
                     </div>
-                  )}
-
-                  {order.mp_payment_id && (
-                    <div className="flex items-center space-x-2">
-                      <Eye className="h-4 w-4 text-gray-400" />
-                      <span className="text-sm text-gray-600">
-                        MP: {order.mp_payment_id}
-                      </span>
-                    </div>
-                  )}
-                </div>
-
-                <div className="border-t pt-3">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <Package className="h-4 w-4 text-gray-400" />
-                    <span className="text-sm font-medium text-gray-700">Productos:</span>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-                    {order.products?.map((product: any, index: number) => (
-                      <div key={index} className="text-sm bg-gray-50 p-2 rounded">
-                        <div className="font-medium">{product.name || product.title}</div>
-                        <div className="text-gray-600">
-                          Cantidad: {product.quantity} × {formatPrice(product.price || product.unit_price)}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+                      {productsArray.map((product: any, index: number) => (
+                        <div key={index} className="text-sm bg-gray-50 p-2 rounded">
+                          <div className="font-medium">{product.name || product.title}</div>
+                          <div className="text-gray-600">
+                            Cantidad: {product.quantity} × {formatPrice(product.price || product.unit_price)}
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </CardContent>
