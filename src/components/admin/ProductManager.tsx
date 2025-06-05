@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Plus, Edit, Trash2, Save, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import ImageUpload from './ImageUpload';
 
 interface Product {
   id: string;
@@ -247,13 +248,12 @@ const ProductManager = () => {
                     </SelectContent>
                   </Select>
                 </div>
-                <div>
-                  <Label htmlFor="image_url">URL de Imagen</Label>
-                  <Input
-                    id="image_url"
-                    value={formData.image_url}
-                    onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                    placeholder="https://ejemplo.com/imagen.jpg"
+                <div className="md:col-span-2">
+                  <ImageUpload
+                    currentImage={formData.image_url}
+                    onImageUploaded={(url) => setFormData({ ...formData, image_url: url })}
+                    onImageRemoved={() => setFormData({ ...formData, image_url: '' })}
+                    label="Imagen del Producto"
                   />
                 </div>
               </div>

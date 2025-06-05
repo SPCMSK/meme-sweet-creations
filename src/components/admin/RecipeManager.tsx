@@ -5,10 +5,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
-import { Plus, Edit, Trash2, Save, X, Video, FileText } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Plus, Edit, Trash2, Save, X, Video, FileText, Crown } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import ImageUpload from './ImageUpload';
 
 interface Recipe {
   id: string;
@@ -17,8 +18,7 @@ interface Recipe {
   content: string | null;
   image_url: string | null;
   video_url: string | null;
-  is_free: boolean | null;
-  price: number | null;
+  tier_required: string;
 }
 
 interface RecipeFormData {
@@ -27,8 +27,7 @@ interface RecipeFormData {
   content: string;
   image_url: string;
   video_url: string;
-  is_free: boolean;
-  price: string;
+  tier_required: string;
 }
 
 const RecipeManager = () => {
@@ -42,9 +41,15 @@ const RecipeManager = () => {
     content: '',
     image_url: '',
     video_url: '',
-    is_free: true,
-    price: ''
+    tier_required: 'free'
   });
+
+  const tiers = [
+    { value: 'free', label: 'Gratis', color: 'bg-green-100 text-green-800' },
+    { value: 'basic', label: 'Básico', color: 'bg-blue-100 text-blue-800' },
+    { value: 'premium', label: 'Premium', color: 'bg-purple-100 text-purple-800' },
+    { value: 'vip', label: 'VIP', color: 'bg-yellow-100 text-yellow-800' }
+  ];
 
   useEffect(() => {
     fetchRecipes();
@@ -78,8 +83,7 @@ const RecipeManager = () => {
       content: '',
       image_url: '',
       video_url: '',
-      is_free: true,
-      price: ''
+      tier_required: 'free'
     });
     setEditingRecipe(null);
     setShowForm(false);
@@ -92,8 +96,7 @@ const RecipeManager = () => {
       content: recipe.content || '',
       image_url: recipe.image_url || '',
       video_url: recipe.video_url || '',
-      is_free: recipe.is_free ?? true,
-      price: recipe.price ? recipe.price.toString() : ''
+      tier_required: recipe.tier_required || 'free'
     });
     setEditingRecipe(recipe);
     setShowForm(true);
@@ -107,16 +110,6 @@ const RecipeManager = () => {
       return;
     }
 
-    let price = null;
-    if (!formData.is_free) {
-      const priceValue = parseFloat(formData.price);
-      if (isNaN(priceValue) || priceValue <= 0) {
-        toast.error('El precio debe ser un número válido mayor a 0 para recetas de pago');
-        return;
-      }
-      price = priceValue;
-    }
-
     try {
       const recipeData = {
         title: formData.title,
@@ -124,8 +117,7 @@ const RecipeManager = () => {
         content: formData.content || null,
         image_url: formData.image_url || null,
         video_url: formData.video_url || null,
-        is_free: formData.is_free,
-        price: price
+        tier_required: formData.tier_required
       };
 
       if (editingRecipe) {
@@ -190,6 +182,10 @@ const RecipeManager = () => {
     }
   };
 
+  const getTierInfo = (tier: string) => {
+    return tiers.find(t => t.value === tier) || tiers[0];
+  };
+
   if (loading) {
     return <div>Cargando recetas...</div>;
   }
@@ -251,15 +247,6 @@ const RecipeManager = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="image_url">URL de Imagen</Label>
-                  <Input
-                    id="image_url"
-                    value={formData.image_url}
-                    onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                    placeholder="https://ejemplo.com/imagen.jpg"
-                  />
-                </div>
-                <div>
                   <Label htmlFor="video_url">URL de Video</Label>
                   <Input
                     id="video_url"
@@ -268,31 +255,33 @@ const RecipeManager = () => {
                     placeholder="https://youtube.com/watch?v=..."
                   />
                 </div>
+                <div>
+                  <Label htmlFor="tier_required">Nivel de Acceso</Label>
+                  <Select value={formData.tier_required} onValueChange={(value) => setFormData({ ...formData, tier_required: value })}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccionar nivel" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {tiers.map((tier) => (
+                        <SelectItem key={tier.value} value={tier.value}>
+                          <div className="flex items-center space-x-2">
+                            {tier.value !== 'free' && <Crown className="h-4 w-4" />}
+                            <span>{tier.label}</span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
-              <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    id="is_free"
-                    checked={formData.is_free}
-                    onCheckedChange={(checked) => setFormData({ ...formData, is_free: checked })}
-                  />
-                  <Label htmlFor="is_free">Receta gratuita</Label>
-                </div>
-
-                {!formData.is_free && (
-                  <div className="flex-1 max-w-xs">
-                    <Label htmlFor="price">Precio</Label>
-                    <Input
-                      id="price"
-                      type="number"
-                      step="0.01"
-                      value={formData.price}
-                      onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                      placeholder="0.00"
-                    />
-                  </div>
-                )}
+              <div>
+                <ImageUpload
+                  currentImage={formData.image_url}
+                  onImageUploaded={(url) => setFormData({ ...formData, image_url: url })}
+                  onImageRemoved={() => setFormData({ ...formData, image_url: '' })}
+                  label="Imagen de la Receta"
+                />
               </div>
 
               <div className="flex space-x-2">
@@ -311,73 +300,74 @@ const RecipeManager = () => {
       )}
 
       <div className="grid gap-4">
-        {recipes.map((recipe) => (
-          <Card key={recipe.id}>
-            <CardContent className="p-4">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-start space-x-4">
-                    {recipe.image_url && (
-                      <img
-                        src={recipe.image_url}
-                        alt={recipe.title}
-                        className="w-20 h-20 object-cover rounded"
-                      />
-                    )}
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-lg">{recipe.title}</h3>
-                      
-                      <div className="flex items-center space-x-4 mt-1">
-                        <span className={`text-sm px-2 py-1 rounded ${
-                          recipe.is_free 
-                            ? 'bg-green-100 text-green-800' 
-                            : 'bg-blue-100 text-blue-800'
-                        }`}>
-                          {recipe.is_free ? 'Gratuita' : `$${recipe.price?.toLocaleString('es-CL')}`}
-                        </span>
-
-                        {recipe.video_url && (
-                          <span className="flex items-center text-sm text-gray-500">
-                            <Video className="w-4 h-4 mr-1" />
-                            Video
+        {recipes.map((recipe) => {
+          const tierInfo = getTierInfo(recipe.tier_required);
+          
+          return (
+            <Card key={recipe.id}>
+              <CardContent className="p-4">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-start space-x-4">
+                      {recipe.image_url && (
+                        <img
+                          src={recipe.image_url}
+                          alt={recipe.title}
+                          className="w-20 h-20 object-cover rounded"
+                        />
+                      )}
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-lg">{recipe.title}</h3>
+                        
+                        <div className="flex items-center space-x-4 mt-1">
+                          <span className={`text-sm px-2 py-1 rounded ${tierInfo.color}`}>
+                            {tierInfo.value !== 'free' && <Crown className="inline w-3 h-3 mr-1" />}
+                            {tierInfo.label}
                           </span>
-                        )}
 
-                        {recipe.content && (
-                          <span className="flex items-center text-sm text-gray-500">
-                            <FileText className="w-4 h-4 mr-1" />
-                            Instrucciones
-                          </span>
+                          {recipe.video_url && (
+                            <span className="flex items-center text-sm text-gray-500">
+                              <Video className="w-4 h-4 mr-1" />
+                              Video
+                            </span>
+                          )}
+
+                          {recipe.content && (
+                            <span className="flex items-center text-sm text-gray-500">
+                              <FileText className="w-4 h-4 mr-1" />
+                              Instrucciones
+                            </span>
+                          )}
+                        </div>
+
+                        {recipe.description && (
+                          <p className="text-gray-600 mt-2 text-sm">{recipe.description}</p>
                         )}
                       </div>
-
-                      {recipe.description && (
-                        <p className="text-gray-600 mt-2 text-sm">{recipe.description}</p>
-                      )}
                     </div>
                   </div>
+                  <div className="flex space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleEdit(recipe)}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDelete(recipe.id)}
+                      className="text-red-600 hover:text-red-700"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
-                <div className="flex space-x-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleEdit(recipe)}
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleDelete(recipe.id)}
-                    className="text-red-600 hover:text-red-700"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
       {recipes.length === 0 && (

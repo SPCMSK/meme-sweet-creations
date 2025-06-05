@@ -4,13 +4,14 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Package, BookOpen, ShoppingCart, Users } from 'lucide-react';
+import { ArrowLeft, Package, BookOpen, ShoppingCart, Users, Crown } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProfile } from '@/hooks/useProfile';
 import Navbar from '@/components/Navbar';
 import ProductManager from '@/components/admin/ProductManager';
 import RecipeManager from '@/components/admin/RecipeManager';
 import OrderManager from '@/components/admin/OrderManager';
+import ClubManager from '@/components/admin/ClubManager';
 
 const AdminPage = () => {
   const navigate = useNavigate();
@@ -93,12 +94,12 @@ const AdminPage = () => {
             Panel de <span className="text-pastel-purple">Administración</span>
           </h1>
           <p className="font-inter text-lg text-charcoal/70">
-            Gestiona productos, recetas, pedidos y usuarios desde aquí.
+            Gestiona productos, recetas, pedidos, usuarios y el club desde aquí.
           </p>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="products" className="flex items-center space-x-2">
               <Package className="h-4 w-4" />
               <span>Productos</span>
@@ -110,6 +111,10 @@ const AdminPage = () => {
             <TabsTrigger value="orders" className="flex items-center space-x-2">
               <ShoppingCart className="h-4 w-4" />
               <span>Pedidos</span>
+            </TabsTrigger>
+            <TabsTrigger value="club" className="flex items-center space-x-2">
+              <Crown className="h-4 w-4" />
+              <span>Club</span>
             </TabsTrigger>
             <TabsTrigger value="users" className="flex items-center space-x-2">
               <Users className="h-4 w-4" />
@@ -127,6 +132,10 @@ const AdminPage = () => {
 
           <TabsContent value="orders">
             <OrderManager />
+          </TabsContent>
+
+          <TabsContent value="club">
+            <ClubManager />
           </TabsContent>
 
           <TabsContent value="users">

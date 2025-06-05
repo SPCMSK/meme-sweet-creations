@@ -45,6 +45,36 @@ export type Database = {
         }
         Relationships: []
       }
+      club_messages: {
+        Row: {
+          content: string
+          created_at: string | null
+          created_by: string | null
+          id: string
+          is_active: boolean | null
+          target_tier: string | null
+          title: string
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          target_tier?: string | null
+          title: string
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          target_tier?: string | null
+          title?: string
+        }
+        Relationships: []
+      }
       club_subscriptions: {
         Row: {
           created_at: string
@@ -240,8 +270,7 @@ export type Database = {
           description: string | null
           id: string
           image_url: string | null
-          is_free: boolean | null
-          price: number | null
+          tier_required: string | null
           title: string
           video_url: string | null
         }
@@ -251,8 +280,7 @@ export type Database = {
           description?: string | null
           id?: string
           image_url?: string | null
-          is_free?: boolean | null
-          price?: number | null
+          tier_required?: string | null
           title: string
           video_url?: string | null
         }
@@ -262,8 +290,7 @@ export type Database = {
           description?: string | null
           id?: string
           image_url?: string | null
-          is_free?: boolean | null
-          price?: number | null
+          tier_required?: string | null
           title?: string
           video_url?: string | null
         }
